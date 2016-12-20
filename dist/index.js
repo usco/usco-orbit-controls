@@ -39,6 +39,7 @@ var params = exports.params = {
     enabled: false,
     speed: 2.0 // 30 seconds per round when fps is 60
   },
+  autoAdjustPlanes: true, // adjust near & far planes when zooming in &out
   limits: {
     minDistance: 30,
     maxDistance: 800
@@ -116,7 +117,7 @@ function update(settings, state) {
   if (targetTgt && positionTgt) {
     var posDiff = vec3.subtract([], positionTgt, newPosition);
     var tgtDiff = vec3.subtract([], targetTgt, newTarget);
-    //console.log('posDiff', newPosition, positionTgt, newTarget, targetTgt)
+    // console.log('posDiff', newPosition, positionTgt, newTarget, targetTgt)
     if (vec3.length(posDiff) > 0.1 && vec3.length(tgtDiff) > 0.1) {
       newPosition = vec3.scaleAndAdd(newPosition, newPosition, posDiff, 0.1);
       newTarget = vec3.scaleAndAdd(newTarget, newTarget, tgtDiff, 0.1);
@@ -155,13 +156,14 @@ function zoom(params, camera, zoomScale) {
     var scale = zoomScale < 0 ? camera.scale / amount : camera.scale * amount;
     camera.scale += amount;
 
-    // these are empirical values , after a LOT of testing
-    camera.near += amount * 0.5;
-    camera.near = Math.min(Math.max(10, camera.near), 12);
-    camera.far += amount * 500;
-    camera.far = Math.max(Math.min(2000, camera.far), 150);
-    // console.log('near ', camera.near, 'far', camera.far)
-
+    if (params.autoAdjustPlanes) {
+      // these are empirical values , after a LOT of testing
+      camera.near += amount * 0.5;
+      camera.near = Math.min(Math.max(10, camera.near), 12);
+      camera.far += amount * 500;
+      camera.far = Math.max(Math.min(2000, camera.far), 150);
+      // console.log('near ', camera.near, 'far', camera.far)
+    }
     var projection = mat4.perspective([], camera.fov, camera.aspect, // context.viewportWidth / context.viewportHeight,
     camera.near, camera.far);
     camera.projection = projection;
