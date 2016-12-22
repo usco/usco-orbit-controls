@@ -114,6 +114,8 @@ function update(settings, state) {
   */
 
   // temporary setup for camera 'move/zoom to fit'
+  var near = camera.near;
+  var projection = camera.projection;
   if (targetTgt && positionTgt) {
     var posDiff = vec3.subtract([], positionTgt, newPosition);
     var tgtDiff = vec3.subtract([], targetTgt, newTarget);
@@ -121,6 +123,12 @@ function update(settings, state) {
     if (vec3.length(posDiff) > 0.1 && vec3.length(tgtDiff) > 0.1) {
       newPosition = vec3.scaleAndAdd(newPosition, newPosition, posDiff, 0.1);
       newTarget = vec3.scaleAndAdd(newTarget, newTarget, tgtDiff, 0.1);
+    }
+
+    if (settings.autoAdjustPlanes) {
+      var distance = vec3.squaredDistance(newTarget, newPosition);
+      near = Math.min(Math.max(5, distance * 0.0015), 100); // these are empirical values , after a LOT of testing
+      projection = mat4.perspective([], camera.fov, camera.aspect, camera.near, camera.far);
     }
   }
 
@@ -135,8 +143,10 @@ function update(settings, state) {
 
     position: newPosition,
     target: newTarget,
-    view: newView
-  };
+    view: newView,
+
+    near: near,
+    projection: projection };
 }
 
 function rotate(params, camera, angle) {
