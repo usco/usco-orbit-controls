@@ -131,16 +131,12 @@ export function zoom (params, camera, zoomScale) {
   if (params.userControl.zoom) {
     zoomScale = zoomScale * 0.001 // Math.min(Math.max(zoomScale, -0.1), 0.1)
     const amount = Math.abs(zoomScale) === 1 ? Math.pow(0.95, params.userControl.zoomSpeed) : zoomScale
-    const scale = zoomScale < 0 ? (camera.scale / amount) : (camera.scale * amount)
     camera.scale += amount
 
     if (params.autoAdjustPlanes) {
       // these are empirical values , after a LOT of testing
-      camera.near += amount * 0.5
-      camera.near = Math.min(Math.max(10, camera.near), 12)
-      camera.far += amount * 500
-      camera.far = Math.max(Math.min(2000, camera.far), 150)
-    // console.log('near ', camera.near, 'far', camera.far)
+      const distance = vec3.squaredDistance(camera.target, camera.position)
+      camera.near = Math.min(Math.max(5, distance * 0.0015), 100)
     }
     const projection = mat4.perspective([], camera.fov, camera.aspect, // context.viewportWidth / context.viewportHeight,
       camera.near,
